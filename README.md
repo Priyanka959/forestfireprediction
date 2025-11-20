@@ -55,21 +55,9 @@ Advanced predictive analytics for wildfire risk assessment and prevention using 
 
 ## Screenshots
 
-Add screenshots of your application here. To add screenshots:
+<img width="940" height="1268" alt="image" src="https://github.com/user-attachments/assets/070ead42-75d8-40b4-b31b-92c1418133a5" />
+<img width="940" height="1161" alt="image" src="https://github.com/user-attachments/assets/ac5f6be4-fa24-4c9d-a967-3d7f38b08e4e" />
 
-1. Take screenshots of your running application
-2. Save them in a `screenshots/` folder in your repository
-3. Add them to this README using Markdown image syntax:
-
-   ```markdown
-   ![Home Page](screenshots/homepage.png)
-   ![Prediction Results](screenshots/results.png)
-   ```
-
-   Example:
-   - Screenshot of the main prediction form
-   - Screenshot of the risk assessment results
-   - Screenshot of the impact visualization
 
 ## Model Information
 
