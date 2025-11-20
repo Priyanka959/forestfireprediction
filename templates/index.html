@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wildfire Risk Intelligence</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Plotly JS -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-dark: #1a365d;
+            --primary-main: #2d4e8a;
+            --primary-light: #4a76b8;
+            --secondary-dark: #0f766e;
+            --secondary-main: #14b8a6;
+            --secondary-light: #2dd4bf;
+            --accent-warm: #ea580c;
+            --accent-hot: #dc2626;
+            --neutral-dark: #1e293b;
+            --neutral-main: #475569;
+            --neutral-light: #f1f5f9;
+            --white: #ffffff;
+            --gradient-primary: linear-gradient(135deg, var(--primary-dark), var(--primary-main));
+            --gradient-secondary: linear-gradient(135deg, var(--secondary-dark), var(--secondary-main));
+            --gradient-accent: linear-gradient(135deg, var(--accent-warm), var(--accent-hot));
+            --shadow-sm: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            --shadow-md: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--neutral-light);
+            color: var(--neutral-dark);
+            line-height: 1.6;
+            scroll-behavior: smooth;
+        }
+
+        .glass-card {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(12px);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: var(--shadow-md);
+            transition: all 0.3s ease;
+        }
+
+        .glass-card:hover {
+            box-shadow: var(--shadow-lg);
+            transform: translateY(-2px);
+        }
+
+        .header-section {
+            padding: 80px 0 60px;
+            background: var(--gradient-primary);
+            color: var(--white);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 100" fill="%23ffffff" opacity="0.05"><polygon points="0,0 0,100 1000,0"></polygon></svg>');
+            background-size: cover;
+        }
+
+        .floating {
+            animation: floating 6s ease-in-out infinite;
+        }
+
+        @keyframes floating {
+            0% { transform: translate(0, 0px); }
+            50% { transform: translate(0, -12px); }
+            100% { transform: translate(0, -0px); }
+        }
+
+        .pulse {
+            animation: pulse 3s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(234, 88, 12, 0.4); }
+            70% { box-shadow: 0 0 0 12px rgba(234, 88, 12, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(234, 88, 12, 0); }
+        }
+
+        .btn-primary-modern {
+            background: var(--gradient-primary);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 32px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary-modern:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            color: white;
+        }
+
+        .btn-accent {
+            background: var(--gradient-accent);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            padding: 14px 32px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-accent:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+            color: white;
+        }
+
+        .input-modern {
+            border: 1px solid #e2e8f0;
+            border-radius: 10px;
+            padding: 12px 16px;
+            transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.7);
+        }
+
+        .input-modern:focus {
+            border-color: var(--primary-light);
+            box-shadow: 0 0 0 3px rgba(45, 78, 138, 0.1);
+            background: white;
+        }
+
+        .stat-card {
+            background: var(--white);
+            border-radius: 12px;
+            padding: 24px;
+            text-align: center;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            border-left: 4px solid var(--primary-main);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .risk-high {
+            background: var(--gradient-accent);
+            color: white;
+        }
+
+        .risk-medium {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: white;
+        }
+
+        .risk-low {
+            background: var(--gradient-secondary);
+            color: white;
+        }
+
+        .feature-icon {
+            width: 70px;
+            height: 70px;
+            background: var(--gradient-primary);
+            border-radius: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            color: white;
+            font-size: 1.8rem;
+        }
+
+        .section-title {
+            position: relative;
+            padding-bottom: 12px;
+            margin-bottom: 24px;
+            font-weight: 700;
+            color: var(--primary-dark);
+        }
+
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 60px;
+            height: 4px;
+            background: var(--gradient-primary);
+            border-radius: 2px;
+        }
+
+        .section-title.center::after {
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .risk-meter {
+            height: 12px;
+            background: #e2e8f0;
+            border-radius: 6px;
+            overflow: hidden;
+            margin: 20px 0;
+        }
+
+        .risk-fill {
+            height: 100%;
+            border-radius: 6px;
+            transition: width 1s ease;
+        }
+
+        .tooltip-icon {
+            cursor: help;
+            color: var(--primary-main);
+            margin-left: 5px;
+        }
+
+        .result-badge {
+            padding: 10px 20px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+
+        .footer {
+            background: var(--primary-dark);
+            color: white;
+            padding: 40px 0;
+            margin-top: 60px;
+        }
+
+        .info-card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            height: 100%;
+            border-top: 4px solid var(--secondary-main);
+        }
+
+        .info-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .info-card h5 {
+            color: var(--primary-dark);
+            margin-bottom: 15px;
+        }
+
+        .info-card i {
+            color: var(--secondary-main);
+            margin-bottom: 15px;
+            font-size: 2rem;
+        }
+
+        .dashboard-card {
+            background: white;
+            border-radius: 16px;
+            padding: 25px;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.3s ease;
+            height: 100%;
+            border-left: 5px solid var(--primary-main);
+        }
+
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .dashboard-stat {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary-dark);
+            margin: 10px 0;
+        }
+
+        .dashboard-label {
+            color: var(--neutral-main);
+            font-weight: 500;
+        }
+
+        .risk-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .risk-low-indicator {
+            background-color: var(--secondary-main);
+        }
+
+        .risk-medium-indicator {
+            background-color: #f59e0b;
+        }
+
+        .risk-high-indicator {
+            background-color: var(--accent-hot);
+        }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<section class="header-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6">
+                <h1 class="display-4 fw-bold mb-3">Wildfire Risk Intelligence</h1>
+                <p class="lead mb-4">Advanced predictive analytics for wildfire risk assessment and prevention</p>
+                <div class="d-flex gap-3">
+                    <a href="#prediction-form" class="btn btn-accent pulse">
+                        <i class="fas fa-bolt me-2"></i>Assess Risk Now
+                    </a>
+                    <a href="#learn-more" class="btn btn-outline-light">
+                        <i class="fas fa-info-circle me-2"></i>Learn More
+                    </a>
+                </div>
+            </div>
+            <div class="col-lg-6 text-center">
+                <div class="position-relative">
+                    <div class="floating">
+                        <i class="fas fa-mountain fa-8x text-white opacity-25"></i>
+                        <i class="fas fa-fire fa-4x text-white opacity-75 position-absolute" style="top: 40px; left: 50%; transform: translateX(-50%);"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Dashboard Stats -->
+<section class="py-4">
+    <div class="container">
+        <div class="row g-4">
+            <div class="col-md-3">
+                <div class="dashboard-card text-center">
+                    <i class="fas fa-fire text-danger fa-2x mb-3"></i>
+                    <div class="dashboard-stat">98.7%</div>
+                    <div class="dashboard-label">Prediction Accuracy</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="dashboard-card text-center">
+                    <i class="fas fa-database text-primary fa-2x mb-3"></i>
+                    <div class="dashboard-stat">15K+</div>
+                    <div class="dashboard-label">Data Points Analyzed</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="dashboard-card text-center">
+                    <i class="fas fa-brain text-success fa-2x mb-3"></i>
+                    <div class="dashboard-stat">24/7</div>
+                    <div class="dashboard-label">AI Monitoring</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="dashboard-card text-center">
+                    <i class="fas fa-shield-alt text-warning fa-2x mb-3"></i>
+                    <div class="dashboard-stat">85%</div>
+                    <div class="dashboard-label">Prevention Success</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Prediction Form -->
+<div class="container mt-5 mb-5" id="prediction-form">
+    <div class="glass-card p-4 p-md-5">
+        <h3 class="section-title">Environmental Risk Assessment</h3>
+        
+        <form method="POST" id="predictionForm">
+            <div class="row g-4">
+                <!-- Weather Parameters -->
+                <div class="col-md-6">
+                    <h5 class="fw-semibold mb-3 text-primary"><i class="fas fa-cloud-sun me-2"></i>Weather Conditions</h5>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-medium">Temperature (°C)</label>
+                            <input type="number" step="0.00001" class="form-control input-modern" name="temperature" placeholder="e.g., 25.5" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-medium">Relative Humidity (%)</label>
+                            <input type="number" step="0.00001" class="form-control input-modern" name="humidity" placeholder="e.g., 45.0" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-medium">Wind Speed (km/h)</label>
+                            <input type="number" step="0.00001" class="form-control input-modern" name="wind" placeholder="e.g., 12.5" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-medium">Rainfall (mm)</label>
+                            <input type="number" step="0.00001" class="form-control input-modern" name="rain" placeholder="e.g., 0.0" required>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Fire Indices -->
+                <div class="col-md-6">
+                    <h5 class="fw-semibold mb-3 text-primary"><i class="fas fa-fire me-2"></i>Fire Weather Indices</h5>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-medium">FFMC <i class="fas fa-info-circle tooltip-icon" title="Fine Fuel Moisture Code - indicates flammability of fine fuels"></i></label>
+                            <input type="number" step="0.00001" class="form-control input-modern" name="FFMC" placeholder="e.g., 85.0" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-medium">DMC <i class="fas fa-info-circle tooltip-icon" title="Duff Moisture Code - indicates moisture content of compact organic layers"></i></label>
+                            <input type="number" step="0.00001" class="form-control input-modern" name="DMC" placeholder="e.g., 35.0" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-medium">DC <i class="fas fa-info-circle tooltip-icon" title="Drought Code - indicates seasonal drought effects"></i></label>
+                            <input type="number" step="0.00001" class="form-control input-modern" name="DC" placeholder="e.g., 150.0" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-medium">ISI <i class="fas fa-info-circle tooltip-icon" title="Initial Spread Index - indicates expected fire spread rate"></i></label>
+                            <input type="number" step="0.00001" class="form-control input-modern" name="ISI" placeholder="e.g., 8.5" required>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Time Parameters -->
+            <div class="row g-4 mt-2">
+                <div class="col-md-6">
+                    <h5 class="fw-semibold mb-3 text-primary"><i class="fas fa-calendar me-2"></i>Time Parameters</h5>
+                    <div class="row g-3">
+                        <div class="col-12">
+                            <label class="form-label fw-medium">Month</label>
+                            <select name="month" class="form-select input-modern" required>
+                                <option value="">Select Month</option>
+                                <option value="jan">January</option>
+                                <option value="feb">February</option>
+                                <option value="mar">March</option>
+                                <option value="apr">April</option>
+                                <option value="may">May</option>
+                                <option value="jun">June</option>
+                                <option value="jul">July</option>
+                                <option value="aug">August</option>
+                                <option value="sep">September</option>
+                                <option value="oct">October</option>
+                                <option value="nov">November</option>
+                                <option value="dec">December</option>
+                            </select>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label fw-medium">Day of Week</label>
+                            <select name="day" class="form-select input-modern" required>
+                                <option value="">Select Day</option>
+                                <option value="mon">Monday</option>
+                                <option value="tue">Tuesday</option>
+                                <option value="wed">Wednesday</option>
+                                <option value="thu">Thursday</option>
+                                <option value="fri">Friday</option>
+                                <option value="sat">Saturday</option>
+                                <option value="sun">Sunday</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quick Info -->
+                <div class="col-md-6">
+                    <h5 class="fw-semibold mb-3 text-primary"><i class="fas fa-lightbulb me-2"></i>Risk Indicators</h5>
+                    <div class="alert alert-primary border-0" style="background: rgba(45, 78, 138, 0.1);">
+                        <small class="fw-medium">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>High Risk Conditions:</strong><br>
+                            • Temperature > 30°C<br>
+                            • Humidity < 30%<br>
+                            • Wind Speed > 20 km/h<br>
+                            • FFMC > 90, ISI > 10
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submit Button -->
+            <div class="text-center mt-4">
+                <button type="submit" class="btn btn-accent btn-lg">
+                    <i class="fas fa-chart-line me-2"></i>Analyze Fire Risk
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Result -->
+    {% if result %}
+    <div class="glass-card p-4 p-md-5 mt-5">
+        <h3 class="section-title">Risk Assessment Results</h3>
+        
+        <div class="row text-center mb-4">
+            <div class="col-md-4 mb-3">
+                <div class="stat-card {% if result.fire_probability > 70 %}risk-high{% elif result.fire_probability > 30 %}risk-medium{% else %}risk-low{% endif %}">
+                    <i class="fas fa-fire fa-2x mb-2"></i>
+                    <h3 class="fw-bold">{{ result.fire_probability }}%</h3>
+                    <p class="mb-0">Fire Probability</p>
+                </div>
+            </div>
+            <div class="col-md-4 mb-3">
+                <div class="stat-card {% if result.fire_occurred %}risk-high{% else %}risk-low{% endif %}">
+                    <i class="fas fa-exclamation-triangle fa-2x mb-2"></i>
+                    <h3 class="fw-bold">{{ 'HIGH' if result.fire_occurred else 'LOW' }}</h3>
+                    <p class="mb-0">Risk Level</p>
+                </div>
+            </div>
+            {% if result.burned_area %}
+            <div class="col-md-4 mb-3">
+                <div class="stat-card risk-high">
+                    <i class="fas fa-burn fa-2x mb-2"></i>
+                    <h3 class="fw-bold">{{ result.burned_area }} ha</h3>
+                    <p class="mb-0">Potential Area</p>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Risk Meter -->
+        <div class="mb-4">
+            <div class="d-flex justify-content-between mb-2">
+                <span class="fw-medium">Low Risk</span>
+                <span class="fw-medium">Current Assessment</span>
+                <span class="fw-medium">High Risk</span>
+            </div>
+            <div class="risk-meter">
+                <div class="risk-fill {% if result.fire_occurred %}risk-high{% else %}risk-low{% endif %}" 
+                     style="width: {{ result.fire_probability }}%"></div>
+            </div>
+        </div>
+
+        <!-- Detailed Results -->
+        <div class="row mt-4">
+            <div class="col-md-6">
+                <div class="alert {% if result.fire_occurred %}alert-danger{% else %}alert-success{% endif %} border-0">
+                    <h5 class="fw-semibold">
+                        <i class="fas {% if result.fire_occurred %}fa-fire{% else %}fa-check-circle{% endif %} me-2"></i>
+                        Fire Occurrence: {{ 'HIGH PROBABILITY' if result.fire_occurred else 'LOW PROBABILITY' }}
+                    </h5>
+                    <p class="mb-0">Based on current conditions, there is a {{ result.fire_probability }}% probability of fire occurrence.</p>
+                </div>
+            </div>
+            <div class="col-md-6">
+                {% if result.burned_area %}
+                <div class="alert alert-warning border-0">
+                    <h5 class="fw-semibold"><i class="fas fa-expand-arrows-alt me-2"></i>Potential Impact</h5>
+                    <p class="mb-0">Estimated burned area: <strong>{{ result.burned_area }} hectares</strong> based on current conditions.</p>
+                </div>
+                {% else %}
+                <div class="alert alert-info border-0">
+                    <h5 class="fw-semibold"><i class="fas fa-thumbs-up me-2"></i>Favorable Conditions</h5>
+                    <p class="mb-0">Current environmental factors indicate low fire risk. No significant danger detected.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Enhanced Graph -->
+    {% if graph %}
+    <div class="glass-card p-4 mt-5">
+        <h4 class="section-title">Impact Visualization</h4>
+        <div class="row">
+            <div class="col-md-8">
+                {{ graph|safe }}
+            </div>
+            <div class="col-md-4">
+                <div class="alert alert-primary border-0 h-100" style="background: rgba(45, 78, 138, 0.05);">
+                    <h5 class="fw-semibold text-primary">Interpretation Guide</h5>
+                    <p class="mb-3">The visualization shows the predicted burned area in hectares based on the current environmental conditions.</p>
+                    
+                    <div class="mb-3">
+                        <span class="badge risk-high me-2">High Risk</span>
+                        <small>> 50 hectares potential area</small>
+                    </div>
+                    <div class="mb-3">
+                        <span class="badge risk-medium me-2">Medium Risk</span>
+                        <small>10-50 hectares potential area</small>
+                    </div>
+                    <div>
+                        <span class="badge risk-low me-2">Low Risk</span>
+                        <small> 10 hectares potential area</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Learn More Section -->
+<section id="learn-more" class="py-5 bg-white">
+    <div class="container">
+        <h2 class="section-title center text-center">How Our System Works</h2>
+        <p class="text-center text-muted mb-5">Our advanced AI-powered platform uses multiple data points to accurately predict wildfire risks and potential impact areas.</p>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="info-card">
+                    <i class="fas fa-database"></i>
+                    <h5>Data Collection</h5>
+                    <p>We analyze real-time environmental data including temperature, humidity, wind speed, rainfall, and specialized fire weather indices to assess current conditions.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="info-card">
+                    <i class="fas fa-brain"></i>
+                    <h5>AI Analysis</h5>
+                    <p>Our machine learning models, trained on historical wildfire data, process environmental factors to calculate fire probability and potential burned area.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="info-card">
+                    <i class="fas fa-chart-line"></i>
+                    <h5>Risk Assessment</h5>
+                    <p>The system provides detailed risk analysis with probability percentages and visualizations to help understand potential fire behavior and impact.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-5">
+            <div class="col-lg-6">
+                <h4 class="fw-semibold mb-3">Understanding Fire Weather Indices</h4>
+                <div class="accordion" id="indicesAccordion">
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#ffmcInfo">
+                                FFMC (Fine Fuel Moisture Code)
+                            </button>
+                        </h2>
+                        <div id="ffmcInfo" class="accordion-collapse collapse show" data-bs-parent="#indicesAccordion">
+                            <div class="accordion-body">
+                                Measures moisture content in fine fuels like grass and leaves. Values above 90 indicate high flammability.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#dmcInfo">
+                                DMC (Duff Moisture Code)
+                            </button>
+                        </h2>
+                        <div id="dmcInfo" class="accordion-collapse collapse" data-bs-parent="#indicesAccordion">
+                            <div class="accordion-body">
+                                Indicates moisture content in compact organic layers. Higher values mean deeper burning potential.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="accordion-item">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#isiInfo">
+                                ISI (Initial Spread Index)
+                            </button>
+                        </h2>
+                        <div id="isiInfo" class="accordion-collapse collapse" data-bs-parent="#indicesAccordion">
+                            <div class="accordion-body">
+                                Predicts fire spread rate based on wind speed and FFMC. Values above 10 indicate rapid spread potential.
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <h4 class="fw-semibold mb-3">Risk Level Interpretation</h4>
+                <div class="risk-levels">
+                    <div class="d-flex align-items-center mb-3 p-3 rounded" style="background: rgba(20, 184, 166, 0.1);">
+                        <span class="badge risk-low me-3">Low</span>
+                        <span>Probability: 0-30% | Conditions are favorable with minimal fire risk</span>
+                    </div>
+                    <div class="d-flex align-items-center mb-3 p-3 rounded" style="background: rgba(245, 158, 11, 0.1);">
+                        <span class="badge risk-medium me-3">Medium</span>
+                        <span>Probability: 30-70% | Exercise caution and monitor conditions</span>
+                    </div>
+                    <div class="d-flex align-items-center mb-3 p-3 rounded" style="background: rgba(220, 38, 38, 0.1);">
+                        <span class="badge risk-high me-3">High</span>
+                        <span>Probability: 70-100% | High fire danger - implement prevention measures</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<div class="container mt-5">
+    <h3 class="section-title text-center">Technology Features</h3>
+    <div class="row text-center mt-4">
+        <div class="col-md-4 mb-4">
+            <div class="feature-icon">
+                <i class="fas fa-database"></i>
+            </div>
+            <h5 class="fw-semibold">Data Analysis</h5>
+            <p class="text-muted">Our system analyzes multiple environmental factors using historical wildfire data patterns.</p>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="feature-icon">
+                <i class="fas fa-brain"></i>
+            </div>
+            <h5 class="fw-semibold">AI Prediction</h5>
+            <p class="text-muted">Machine learning models assess risk levels and predict potential fire spread patterns.</p>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="feature-icon">
+                <i class="fas fa-shield-alt"></i>
+            </div>
+            <h5 class="fw-semibold">Prevention Strategy</h5>
+            <p class="text-muted">Get actionable insights to implement effective wildfire prevention measures.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<footer class="footer">
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6">
+                <h4 class="fw-bold mb-3">Wildfire Risk Intelligence</h4>
+                <p class="mb-0">Advanced predictive analytics for proactive wildfire management and prevention.</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <p class="mb-1"><i class="fas fa-envelope me-2"></i>contact@wildfirerisk.ai</p>
+                <p class="mb-0"><i class="fas fa-map-marker-alt me-2"></i>Environmental Research Division</p>
+            </div>
+        </div>
+        <hr class="my-4" style="border-color: rgba(255,255,255,0.1);">
+        <div class="text-center">
+            <p class="mb-0">&copy; 2023 Wildfire Risk Intelligence. All rights reserved.</p>
+        </div>
+    </div>
+</footer>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Custom JS -->
+<script>
+    // Add loading animation
+    document.getElementById('predictionForm').addEventListener('submit', function() {
+        const button = this.querySelector('button[type="submit"]');
+        button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Analyzing Conditions...';
+        button.disabled = true;
+    });
+
+    // Initialize tooltips
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl)
+    });
+
+    // Add input validation and real-time feedback
+    document.querySelectorAll('.input-modern').forEach(input => {
+        input.addEventListener('input', function() {
+            if (this.value) {
+                this.classList.add('is-valid');
+            } else {
+                this.classList.remove('is-valid');
+            }
+        });
+    });
+
+    // Smooth scrolling for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener('click', function (e) {
+            e.preventDefault();
+            const target = document.querySelector(this.getAttribute('href'));
+            if (target) {
+                target.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'start'
+                });
+            }
+        });
+    });
+
+    // Create enhanced visualization
+    document.addEventListener('DOMContentLoaded', function() {
+        // This would be replaced by your actual graph data
+        // For demonstration, we'll create a sample visualization
+        const graphDiv = document.getElementById('graph-placeholder');
+        if (graphDiv) {
+            const data = [{
+                type: 'indicator',
+                mode: 'gauge+number+delta',
+                value: 65,
+                title: { text: 'Fire Risk Level', font: { size: 24 } },
+                delta: { reference: 50 },
+                gauge: {
+                    axis: { range: [null, 100] },
+                    steps: [
+                        { range: [0, 30], color: 'lightgray' },
+                        { range: [30, 70], color: 'yellow' },
+                        { range: [70, 100], color: 'red' }
+                    ],
+                    threshold: {
+                        line: { color: 'red', width: 4 },
+                        thickness: 0.75,
+                        value: 65
+                    }
+                }
+            }];
+            
+            const layout = {
+                width: 600,
+                height: 400,
+                margin: { t: 0, b: 0 }
+            };
+            
+            Plotly.newPlot(graphDiv, data, layout);
+        }
+    });
+</script>
+</body>
+</html>
